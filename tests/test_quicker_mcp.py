@@ -16,6 +16,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = ROOT / "plugins/quicker"
 TEMP_ROOT = ROOT / ".temp"
+# A fresh Windows runner can take over ten seconds to start PowerShell/.NET.
+# This bounds the test process wait, independently of the transport's HTTP timeout.
+PROCESS_TIMEOUT_SECONDS = 30
 POWERSHELL = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
 if not POWERSHELL.is_file():
     POWERSHELL = shutil.which("powershell.exe")
@@ -125,7 +128,7 @@ class Bridge:
         self.process.stdin.write(raw + "\n")
         self.process.stdin.flush()
 
-    def receive(self, timeout=10):
+    def receive(self, timeout=PROCESS_TIMEOUT_SECONDS):
         try:
             return self.output.get(timeout=timeout)
         except queue.Empty:
@@ -277,12 +280,16 @@ class QuickerMcpTests(unittest.TestCase):
         self.assertEqual(len(self.host.requests), 1)
 
     def test_timeout_is_bounded_and_never_retries(self):
+        bridge = self.start(timeout=1)
+        self.host.respond(reply("ready", {}))
+        self.assertEqual(bridge.call(request("ready")), reply("ready", {}))
         self.host.respond(reply(1, {}), delay=2)
+        # Measure the request deadline after startup, not PowerShell cold-start time.
         start = time.monotonic()
-        result = self.start(timeout=1).call(request())
+        result = bridge.call(request())
         self.assert_failure(result, "transport_failed", unknown=True)
         self.assertLess(time.monotonic() - start, 6)
-        self.assertEqual(len(self.host.requests), 1)
+        self.assertEqual([json.loads(item["body"])["id"] for item in self.host.requests], ["ready", 1])
 
     def test_http_500_does_not_expose_response_and_marks_unknown_state(self):
         self.host.respond(status=500, body=b"sensitive-request-body qk_test_secret_DO_NOT_LOG")
@@ -324,7 +331,7 @@ class QuickerMcpTests(unittest.TestCase):
         before = self.settings_path.read_bytes()
         completed = subprocess.run(
             **manifest_launch(["-SettingsPath", str(self.settings_path), "-Check"]),
-            capture_output=True, encoding="utf-8", timeout=10,
+            capture_output=True, encoding="utf-8", timeout=PROCESS_TIMEOUT_SECONDS,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         diagnostic = json.loads(completed.stdout)
