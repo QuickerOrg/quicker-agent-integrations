@@ -14,7 +14,7 @@ Codex 插件 `quicker` 已提供 GitHub 市场安装入口，采用 [MIT 许可�
 | Cursor | 计划接入 | 待开发和实机验证 |
 | 其他 Agent | 按需求扩展 | 先确认其 MCP 和插件机制 |
 
-当前 Quicker 只有 Debug 版开放 MCP；Release 没有入口，也不监听。完整状态及验收标准见[兼容性说明](docs/兼容性.md)。
+需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
 
 ## 安装 Codex 插件
 
@@ -29,13 +29,13 @@ codex plugin add quicker@quicker-agent-integrations
 
 插件运行时需要 Windows PowerShell 5.1 和 Quicker。它不依赖 Python、Node 或 `plugin-creator`。
 
-需要已有带 MCP 设置入口的 Quicker Debug 构建；公开正式版目前不提供此入口。安装后，在 Quicker Debug 设置中启用 MCP 和「允许 MCP 写入」，然后新建 Codex 任务。首次连接时，在 Quicker 的客户端同意窗口确认所显示的客户端。
+安装并运行受支持的 Quicker 构建，在设置 → Agent 中启用 MCP 和「允许 MCP 写入」，然后新建 Codex 任务。MCP 默认关闭，安装插件不会自动开启服务或写入权限。首次连接时，在 Quicker 的客户端同意窗口确认所显示的客户端。
 
 可以这样开始：
 
 > 用 Quicker 写一个动作，显示“来自 Codex”，保存到暂存区并打开预览，不运行。
 
-动作默认保存到暂存区。正式保留到场景、覆盖原动作或执行动作，由用户要求和 Quicker 的审批机制决定。
+动作默认保存到暂存区。支持 MCP 的 Release 构建在 Quicker 内嵌设计器中预览，不返回 HTTP URL；只有 Debug + Vite 时才可能返回浏览器 URL。正式保留到场景、覆盖原动作或执行动作，由用户要求和 Quicker 的审批机制决定。
 
 ## 连接方式
 
