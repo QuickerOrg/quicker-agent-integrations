@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "plugins/quicker/scripts/quicker-mcp.ps1"
+PLUGIN_ROOT = ROOT / "plugins/quicker"
 TEMP_ROOT = ROOT / ".temp"
 POWERSHELL = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
 if not POWERSHELL.is_file():
@@ -36,6 +36,23 @@ def request(request_id=1, method="tools/list", params=None):
 
 def reply(request_id, result):
     return {"jsonrpc": "2.0", "id": request_id, "result": result}
+
+
+def manifest_launch(extra_args, plugin_root=PLUGIN_ROOT):
+    """Mirror Codex's legacy MCP loader: root relative cwd, pass args/env literally."""
+    config = json.loads((plugin_root / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["quicker"]
+    expanded_root = str(plugin_root.resolve())
+    if os.name == "nt" and not expanded_root.startswith("\\\\?\\"):
+        expanded_root = "\\\\?\\" + expanded_root
+
+    env = dict(os.environ)
+    env.update({"HTTP_PROXY": "http://127.0.0.1:1", "HTTPS_PROXY": "http://127.0.0.1:1"})
+    env.update(config.get("env", {}))
+    return {
+        "args": [config["command"], *config["args"], *extra_args],
+        "cwd": str(Path(expanded_root) / config["cwd"]) if "cwd" in config else ROOT,
+        "env": env,
+    }
 
 
 class MockHost:
@@ -87,14 +104,11 @@ class MockHost:
 
 
 class Bridge:
-    def __init__(self, settings_path, timeout=4):
-        env = dict(os.environ)
-        env.update({"HTTP_PROXY": "http://127.0.0.1:1", "HTTPS_PROXY": "http://127.0.0.1:1"})
+    def __init__(self, settings_path, timeout=4, plugin_root=PLUGIN_ROOT):
         self.process = subprocess.Popen(
-            [str(POWERSHELL), "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-             "-File", str(SCRIPT), "-SettingsPath", str(settings_path), "-RequestTimeoutSeconds", str(timeout)],
+            **manifest_launch(["-SettingsPath", str(settings_path), "-RequestTimeoutSeconds", str(timeout)], plugin_root),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            encoding="utf-8", errors="strict", env=env,
+            encoding="utf-8", errors="strict",
         )
         self.output = queue.Queue()
         self.reader = threading.Thread(target=self._read, daemon=True)
@@ -309,8 +323,7 @@ class QuickerMcpTests(unittest.TestCase):
     def test_check_mode_is_read_only_sanitized_and_does_not_initialize(self):
         before = self.settings_path.read_bytes()
         completed = subprocess.run(
-            [str(POWERSHELL), "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-             "-File", str(SCRIPT), "-SettingsPath", str(self.settings_path), "-Check"],
+            **manifest_launch(["-SettingsPath", str(self.settings_path), "-Check"]),
             capture_output=True, encoding="utf-8", timeout=10,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
@@ -320,6 +333,15 @@ class QuickerMcpTests(unittest.TestCase):
         self.assertNotIn(self.settings["Token"], completed.stdout + completed.stderr)
         self.assertEqual(self.settings_path.read_bytes(), before)
         self.assertEqual(self.host.requests, [])
+
+    def test_installed_package_path_with_spaces_and_unicode(self):
+        cached_plugin = Path(self.temp.name) / "插件 cache with spaces" / "quicker"
+        shutil.copytree(PLUGIN_ROOT, cached_plugin)
+        bridge = Bridge(self.settings_path, plugin_root=cached_plugin)
+        self.addCleanup(bridge.close)
+        expected = reply(1, {"tools": []})
+        self.host.respond(expected)
+        self.assertEqual(bridge.call(request()), expected)
 
 
 if __name__ == "__main__":

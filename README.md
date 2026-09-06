@@ -10,7 +10,7 @@ Codex 插件 `quicker` 已提供 GitHub 市场安装入口，采用 [MIT 许可�
 
 | 平台 | 状态 | 使用范围 |
 | --- | --- | --- |
-| Codex | 已实现，v0.1.0 | Windows；读取知识、编写/保存草稿、预览 |
+| Codex | 已实现，v0.1.1 | Windows；读取知识、编写/保存草稿、预览 |
 | Cursor | 计划接入 | 待开发和实机验证 |
 | 其他 Agent | 按需求扩展 | 先确认其 MCP 和插件机制 |
 
@@ -29,7 +29,7 @@ codex plugin add quicker@quicker-agent-integrations
 
 插件运行时需要 Windows PowerShell 5.1 和 Quicker。它不依赖 Python、Node 或 `plugin-creator`。
 
-安装后，在 Quicker Debug 设置中启用 MCP 和「允许 MCP 写入」，然后新建 Codex 任务。首次连接时，在 Quicker 的客户端同意窗口确认所显示的客户端。
+需要已有带 MCP 设置入口的 Quicker Debug 构建；公开正式版目前不提供此入口。安装后，在 Quicker Debug 设置中启用 MCP 和「允许 MCP 写入」，然后新建 Codex 任务。首次连接时，在 Quicker 的客户端同意窗口确认所显示的客户端。
 
 可以这样开始：
 
@@ -54,7 +54,18 @@ Agent 平台插件
 codex plugin list --marketplace quicker-agent-integrations --json
 ```
 
-需要连接诊断时，在实际安装目录运行 `scripts/quicker-mcp.ps1 -Check`。它只显示开关、端口、token 是否存在和端口可达性；`ok=true` 仅说明配置与 TCP 可达，不代表客户端已授权或能够写动作。
+需要连接诊断时，将下方占位符换成安装命令返回的实际插件目录：
+
+```powershell
+Push-Location -LiteralPath "<实际插件安装目录>"
+try {
+    powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\quicker-mcp.ps1 -Check
+} finally {
+    Pop-Location
+}
+```
+
+它只显示开关、端口、token 是否存在和端口可达性；`ok=true` 仅说明配置与 TCP 可达，不代表客户端已授权或能够写动作。
 
 ## 更新和卸载
 
@@ -98,7 +109,7 @@ tests/
 python -m unittest discover -s tests -v
 ```
 
-测试在 Windows 上启动真实 PowerShell 5.1 与隔离 loopback HTTP fixture，无需运行 Quicker，也无需访问用户配置或主产品仓库。非 Windows 环境会跳过当前传输测试；不能把跳过视为验证成功。
+测试读取安装包的实际 MCP 启动配置，在 Windows 上启动真实 PowerShell 5.1 与隔离 loopback HTTP fixture，并覆盖 Codex 缓存路径以及中文、空格目录。无需运行 Quicker，也无需访问用户配置或主产品仓库。非 Windows 环境会跳过当前传输测试；不能把跳过视为验证成功。
 
 新增平台先读[接入约定](docs/接入约定.md)和[新增平台](docs/新增平台.md)。贡献者与 Agent 的仓库工作规则见 [AGENTS.md](AGENTS.md)。
 

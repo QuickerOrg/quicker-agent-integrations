@@ -5,8 +5,15 @@ This plugin runs on Windows with Windows PowerShell 5.1. Its local stdio relay f
 Run the bundled diagnostic using the actual installed plugin root:
 
 ```powershell
-powershell.exe -NoProfile -File "<plugin-root>/scripts/quicker-mcp.ps1" -Check
+Push-Location -LiteralPath "<plugin-root>"
+try {
+    powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .\scripts\quicker-mcp.ps1 -Check
+} finally {
+    Pop-Location
+}
 ```
+
+Use the installed directory reported by Codex, not a literal `${PLUGIN_ROOT}` argument. This plugin uses a package-relative working directory because the Codex legacy MCP loader does not expand that placeholder in arguments.
 
 The relay reads `%USERPROFILE%/.quicker/mcp/server.json` for the port and bearer token on each request. It connects only to 127.0.0.1, does not follow redirects or use an HTTP proxy, and never writes the token into plugin files. Do not print the configuration file, token, HTTP authorization header, or clients.json in tool results or the conversation.
 

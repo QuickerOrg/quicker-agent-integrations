@@ -9,8 +9,9 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${PLUGIN_ROOT}/scripts/quicker-mcp.ps1"
+        "scripts\\quicker-mcp.ps1"
       ],
+      "cwd": ".",
       "startup_timeout_sec": 180,
       "tool_timeout_sec": 180
     }
