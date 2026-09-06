@@ -1,0 +1,20 @@
+{
+  "name": "quicker-agent-integrations",
+  "interface": {
+    "displayName": "Quicker Agent Integrations"
+  },
+  "plugins": [
+    {
+      "name": "quicker",
+      "source": {
+        "source": "local",
+        "path": "./plugins/quicker"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "quicker",
+  "version": "0.1.0",
+  "description": "通过本机 Quicker MCP 编写、修改、校验和预览自动化动作。",
+  "author": {
+    "name": "QuickerOrg"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/QuickerOrg/quicker-agent-integrations",
+  "repository": "https://github.com/QuickerOrg/quicker-agent-integrations",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Quicker 动作助手",
+    "shortDescription": "用自然语言编写 Quicker 动作，保存到暂存区并预览。",
+    "longDescription": "连接本机运行中的 Quicker Debug 版，查询实时步骤知识、编写和修改动作、校验保存草稿，并在 Quicker 中预览。需要在 Quicker 设置中启用 MCP 和允许写入，首次连接需在 Quicker 授权。",
+    "developerName": "QuickerOrg",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "用 Quicker 写一个动作，显示“来自 Codex”，保存到暂存区并打开预览。",
+      "帮我修改一个已有的 Quicker 动作，先保存为草稿。",
+      "查询 Quicker 的步骤知识，帮我设计一个自动化动作。"
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
