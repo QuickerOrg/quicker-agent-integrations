@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -103,7 +104,8 @@ class InstallTests(unittest.TestCase):
                 try:
                     settings = self.profile / 'fixture.json'
                     settings.write_bytes(encoded({'Enabled': True, 'Port': host.port, 'Token': 'test-only-token'}))
-                    package = ROOT / 'plugins' / ('quicker-' + client)
+                    package = self.profile / '插件 缓存' / ('quicker-' + client)
+                    shutil.copytree(ROOT / 'plugins' / ('quicker-' + client), package)
                     config = json.loads((package / ('mcp.json' if client == 'cursor' else '.mcp.json')).read_text(encoding='utf-8'))['mcpServers']['quicker']
                     args = [a.replace('${' + variable + '}', str(package)) for a in config['args']]
                     host.respond(reply(1, {'tools': [], 'extra': '中文保真'}))
