@@ -1,0 +1,16 @@
+{
+  "name": "quicker-agent-integrations",
+  "owner": {
+    "name": "QuickerOrg"
+  },
+  "plugins": [
+    {
+      "name": "quicker",
+      "source": "./plugins/quicker-claude",
+      "description": "通过本机 Quicker MCP 编写、保存和预览自动化动作。"
+    }
+  ],
+  "metadata": {
+    "description": "通过本机 Quicker 编写和预览自动化动作的插件。"
+  }
+}
