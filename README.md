@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | Codex | 已实现，v0.2.0 | Windows；读取知识、编写/保存草稿、预览 |
 | Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
-| Claude Code | 原生插件安装和真实 MCP 连接通过 | 尚未完成模型写动作验收 |
+| Claude Code | 原生插件，v0.2.1 | v0.2.0 公开市场安装和真实 MCP 连接通过；模型写动作待验收 |
 | VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
 
 需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
@@ -46,7 +46,21 @@ claude plugin marketplace add QuickerOrg/quicker-agent-integrations
 claude plugin install quicker@quicker-agent-integrations --scope user
 ```
 
-执行 `/reload-plugins` 或重启 Claude Code，再用 `/mcp` 检查 Quicker。已通过 Claude Code 2.1.263 官方清单校验、本地市场安装和真实 MCP 连接检查；本机没有 Claude 登录状态，尚未完成模型写动作验收。
+启用 Quicker 设置 → Agent 中的 MCP 与允许写入，在 Claude Code 执行 `/reload-plugins` 或新开会话，再用 `/mcp` 检查 Quicker。首次连接需要在 Quicker 中确认 `claude-quicker-plugin` 客户端。
+
+安装、MCP 连接和模型登录需要分别检查：
+
+```powershell
+claude plugin list --json
+claude mcp list
+claude auth status
+```
+
+已通过 Claude Code 2.1.263 官方清单校验、v0.2.0 公开市场安装和真实 MCP 连接检查。`Connected` 不表示模型已登录；若尚未登录，启动 `claude` 并执行 `/login`，或按组织配置完成认证，然后请求：
+
+> 用 Quicker 写一个动作，显示“来自 Claude Code”，保存到暂存区并打开预览，不运行。
+
+Quicker 原生插件可与官方 [codex-plugin-cc](https://github.com/openai/codex-plugin-cc) 同时安装，前者直接提供 Quicker 工具，后者从 Claude Code 委托 Codex 审查或处理代码。两者不互为依赖，Codex 登录不能代替 Claude 登录。更新、连接超时处理及验收范围见[Claude Code 安装和诊断](docs/客户端安装.md#claude-code-安装和诊断)。
 
 ## VS Code / Copilot 与 Gemini CLI
 
