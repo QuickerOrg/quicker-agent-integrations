@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sharedFiles": [
+    "scripts/quicker-mcp.ps1",
+    "skills/write-action/SKILL.md",
+    "skills/write-action/references/connection.md"
+  ],
+  "packages": [
+    {
+      "id": "codex",
+      "path": "plugins/quicker",
+      "manifest": ".codex-plugin/plugin.json",
+      "mcpConfig": ".mcp.json",
+      "marketplace": ".agents/plugins/marketplace.json"
+    },
+    {
+      "id": "cursor",
+      "path": "plugins/quicker-cursor",
+      "manifest": ".cursor-plugin/plugin.json",
+      "mcpConfig": "mcp.json",
+      "marketplace": ".cursor-plugin/marketplace.json"
+    },
+    {
+      "id": "claude",
+      "path": "plugins/quicker-claude",
+      "manifest": ".claude-plugin/plugin.json",
+      "mcpConfig": ".mcp.json",
+      "marketplace": ".claude-plugin/marketplace.json"
+    },
+    {
+      "id": "mcp",
+      "path": "plugins/quicker-mcp",
+      "manifest": "package.json"
+    }
+  ]
+}

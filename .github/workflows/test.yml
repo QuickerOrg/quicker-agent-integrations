@@ -26,5 +26,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m json.tool plugins/quicker/.mcp.json > $null
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Test real Windows PowerShell transport
+      - name: Test transport, installation and release packaging
         run: python -m unittest discover -s tests -v
+      - name: Build and verify every release package
+        run: |
+          $quickerCheckTag = "v0.0.0-ci.$env:GITHUB_RUN_ID.$env:GITHUB_RUN_ATTEMPT"
+          git tag $quickerCheckTag HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/package-release.py --tag $quickerCheckTag --output-dir .temp/release-ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/package-release.py --tag $quickerCheckTag --output-dir .temp/release-ci --verify
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

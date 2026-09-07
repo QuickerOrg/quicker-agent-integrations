@@ -15,6 +15,7 @@ This repository maintains integrations that let external agents use Quicker. Sta
 - Check git status before editing and preserve unrelated changes. Use one writer for Git mutations.
 - User-facing communication and documentation are Chinese. Code and Agent-facing instructions may use English.
 - Write temporary output under .temp/ and distribution archives under dist/; both are ignored.
+- Every release must ship every platform's standalone ZIP, the complete source/install ZIP, release-manifest.json and SHA256SUMS.txt, even when only one plugin changed. Follow docs/发布.md and scripts/release-packages.json; build and verify from the tag with scripts/package-release.py. Verify the downloaded release assets as well. Artifact filenames use the release version; plugin manifest versions remain independent.
 - For transport changes, run `python -m unittest discover -s tests -v` on Windows. The tests use isolated fixtures; never point them at the user's real settings.
 - Validate changed plugin manifests with that platform's current tooling. For Codex, the installed plugin-creator validator is useful locally; the package must not depend on it at runtime.
 - For installation changes, verify package discovery and a local install separately from live Quicker acceptance. A mock transport test does not establish real action authoring.
