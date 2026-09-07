@@ -165,4 +165,6 @@ python -m unittest discover -s tests -v
 
 新增平台先读[接入约定](docs/接入约定.md)和[新增平台](docs/新增平台.md)。贡献者与 Agent 的仓库工作规则见 [AGENTS.md](AGENTS.md)。
 
+每次 Release 提供所有平台的独立 ZIP、完整安装包、发布清单和校验和；即使只更新一个插件也不省略其他平台。发布维护者使用[统一打包与验证流程](docs/发布.md)，从指定 tag 生成并校验全部附件。
+
 参考：[OpenAI 插件打包规范](https://developers.openai.com/plugins/build/plugins)、[Cursor 插件规范](https://cursor.com/docs/reference/plugins)。

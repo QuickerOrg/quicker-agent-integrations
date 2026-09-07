@@ -1,18 +1,18 @@
 """Materialize shared sources into self-contained client packages."""
 import argparse
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGES = ("quicker", "quicker-cursor", "quicker-claude", "quicker-mcp")
-FILES = ("scripts/quicker-mcp.ps1", "skills/write-action/SKILL.md", "skills/write-action/references/connection.md")
+INVENTORY = json.loads((ROOT / "scripts/release-packages.json").read_text(encoding="utf-8"))
 
 
 def sync(check=False):
     stale = []
-    for package in PACKAGES:
-        for relative in FILES:
+    for package in INVENTORY["packages"]:
+        for relative in INVENTORY["sharedFiles"]:
             source = (ROOT / "shared" / relative).read_bytes()
-            target = ROOT / "plugins" / package / relative
+            target = ROOT / package["path"] / relative
             if not target.exists() or target.read_bytes() != source:
                 stale.append(str(target.relative_to(ROOT)))
                 if not check:
