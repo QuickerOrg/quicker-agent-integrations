@@ -145,7 +145,7 @@ class Bridge:
         if self.process.stdin and not self.process.stdin.closed:
             self.process.stdin.close()
         try:
-            self.process.wait(timeout=5)
+            self.process.wait(timeout=PROCESS_TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
             self.process.kill()
             self.process.wait(timeout=2)

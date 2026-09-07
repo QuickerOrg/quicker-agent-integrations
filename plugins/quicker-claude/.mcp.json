@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "quicker": {
+      "command": "powershell.exe",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${CLAUDE_PLUGIN_ROOT}/scripts/quicker-mcp.ps1",
+        "-Client",
+        "claude"
+      ]
+    }
+  }
+}

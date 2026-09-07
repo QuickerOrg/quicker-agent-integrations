@@ -1,0 +1,13 @@
+{
+  "name": "quicker-agent-integrations",
+  "owner": {
+    "name": "QuickerOrg"
+  },
+  "plugins": [
+    {
+      "name": "quicker",
+      "source": "./plugins/quicker-cursor",
+      "description": "通过本机 Quicker MCP 编写、保存和预览自动化动作。"
+    }
+  ]
+}

@@ -4,17 +4,55 @@
 
 这个仓库集中维护各平台插件、安装与更新工具、MCP 接入约定、开发指南和契约测试。插件通过 Quicker 的公开接口工作，步骤知识由运行中的 Quicker 实时提供。
 
-Codex 插件 `quicker` 已提供 GitHub 市场安装入口，采用 [MIT 许可证](LICENSE)。Cursor 接入列入后续工作。
+提供 Codex、Cursor、Claude Code 插件及 VS Code / Gemini CLI 的 MCP 配置安装器，采用 [MIT 许可证](LICENSE)。
 
 ## 支持情况
 
 | 平台 | 状态 | 使用范围 |
 | --- | --- | --- |
-| Codex | 已实现，v0.1.1 | Windows；读取知识、编写/保存草稿、预览 |
-| Cursor | 计划接入 | 待开发和实机验证 |
-| 其他 Agent | 按需求扩展 | 先确认其 MCP 和插件机制 |
+| Codex | 已实现，v0.2.0 | Windows；读取知识、编写/保存草稿、预览 |
+| Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
+| Claude Code | 原生插件安装和真实 MCP 连接通过 | 尚未完成模型写动作验收 |
+| VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
 
 需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
+
+## 安装 Cursor 插件
+
+在 Windows PowerShell 中执行（需要 Git）：
+
+```powershell
+$quickerInstall = Join-Path $env:TEMP ("quicker-agent-" + [guid]::NewGuid().ToString("N"))
+git clone --depth 1 https://github.com/QuickerOrg/quicker-agent-integrations.git $quickerInstall
+if ($LASTEXITCODE -eq 0) {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $quickerInstall "scripts/install-client.ps1") -Client cursor
+}
+```
+
+安装器把自包含插件复制到 `%USERPROFILE%/.cursor/plugins/local/quicker`，运行时不依赖临时检出。执行 **Developer: Reload Window**，再新建对话，在 Cursor 插件设置确认 Quicker 的技能及 MCP 已加载。团队策略须允许本地插件导入；同名市场插件可能优先于本地版本。本项目尚未在 Cursor 官方市场上架。
+
+Cursor CLI 可显式加载已安装的插件：
+
+```powershell
+cursor-agent --plugin-dir "$env:USERPROFILE/.cursor/plugins/local/quicker"
+```
+
+若 PATH 中没有 `cursor-agent`，使用 Cursor CLI 安装时提供的完整命令路径。先启用 Quicker 设置 → Agent 中的 MCP 与允许写入，再让 Cursor 创建、保存并预览一个测试草稿。CLI 非交互测试还有独立的工具调用授权要求，见[各平台安装与诊断](docs/客户端安装.md)。
+
+## 安装 Claude Code 插件
+
+```powershell
+claude plugin marketplace add QuickerOrg/quicker-agent-integrations
+claude plugin install quicker@quicker-agent-integrations --scope user
+```
+
+执行 `/reload-plugins` 或重启 Claude Code，再用 `/mcp` 检查 Quicker。已通过 Claude Code 2.1.263 官方清单校验、本地市场安装和真实 MCP 连接检查；本机没有 Claude 登录状态，尚未完成模型写动作验收。
+
+## VS Code / Copilot 与 Gemini CLI
+
+使用上述下载步骤，将安装器参数分别改为 `-Client vscode` 或 `-Client gemini`。安装器只合并自己的 MCP 项，保留其他服务与设置，token 始终由本地转接读取。
+
+VS Code：执行 **MCP: List Servers**，启动或重启 quicker，然后在 Copilot Agent 模式试写。Gemini CLI：重启后用 `/mcp` 检查。默认配置路径、JSONC / 自定义配置的替代方式、更新与卸载见[客户端安装](docs/客户端安装.md)。本轮只验证安装与转接，未声称这些客户端已通过真实动作编写。
 
 ## 安装 Codex 插件
 
@@ -46,7 +84,7 @@ Agent 平台插件
     → 查询知识 / 编辑动作草稿 / 保存 / 预览
 ```
 
-当前 Codex 包内的 PowerShell 脚本在每次请求时读取本机 Quicker 的端口和 token，不把 token 写入插件、命令行或 Codex 配置；只请求 loopback，不使用代理或跟随重定向。它不修改 Quicker 的授权设置。
+各安装包内的 PowerShell 脚本在每次请求时读取本机 Quicker 的端口和 token，不把 token 写入插件、命令行或 Codex 配置；只请求 loopback，不使用代理或跟随重定向。它不修改 Quicker 的授权设置。
 
 查看安装状态：
 
@@ -101,7 +139,7 @@ tests/
   test_quicker_mcp.py     独立的传输契约测试
 ```
 
-后续平台在 `plugins/` 下增加安装单元，由对应平台的市场清单声明路径。每个安装包自包含；当第二个平台需要复用传输代码时，再抽取共享源码并在打包时放入各安装单元。
+Cursor、Claude 和 Codex 分别由自己的 marketplace 清单声明包路径。`shared/` 是传输与写动作技能的唯一源码，`python scripts/sync-packages.py` 同步到各自包含安装包，`--check` 在 CI 验证无漂移。
 
 ## 开发与验证
 
