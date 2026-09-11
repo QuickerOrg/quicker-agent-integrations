@@ -1,0 +1,5 @@
+# Insert the Quicker bundle. index.js resolves the stdio relay path and
+# loads @deepseek-ai/dsh-mcp-client so the token never enters this file.
+- insert:
+    - id: quicker
+      name: dsh-plugin-quicker

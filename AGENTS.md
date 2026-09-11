@@ -4,7 +4,7 @@ This repository maintains integrations that let external agents use Quicker. Sta
 
 ## Boundaries
 
-- Keep installable packages under plugins/ and make each directory self-contained. The Codex marketplace currently exposes plugins/quicker; declare each future platform's source path in its own catalog.
+- Keep installable packages under plugins/ and make each directory self-contained. The Codex marketplace currently exposes plugins/quicker; DSH uses plugins/quicker-dsh as a cordis bundle. Declare each future platform's source path in its own catalog.
 - Quicker owns action execution, step knowledge, permissions, approvals and Catalog state. Discover runtime knowledge instead of copying a static module catalog here.
 - Do not add Quicker product source, private repository dependencies, personal configuration, client grants, credentials or machine-specific paths.
 - Add shared source when a second real consumer needs it. Copy required runtime files into each distributable package; do not use symlinks or paths outside the installed package.
