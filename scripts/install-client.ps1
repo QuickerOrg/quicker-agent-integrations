@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('cursor', 'vscode', 'gemini')]
+    [ValidateSet('cursor', 'vscode', 'gemini', 'dsh')]
     [string]$Client,
     [string]$UserRoot = [Environment]::GetFolderPath('UserProfile'),
     [switch]$Uninstall
@@ -57,7 +57,39 @@ function Write-Json([string]$Path, $Value) {
     } else { [IO.File]::Move($temporary, $Path) }
 }
 
-$packageName = if ($Client -eq 'cursor') { 'quicker-cursor' } else { 'quicker-mcp' }
+function Get-DshCommand {
+    $command = Get-Command dsh -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+    return $null
+}
+
+function Invoke-DshPlugin([string]$Action, [string]$PackagePath) {
+    $dsh = Get-DshCommand
+    if (-not $dsh) {
+        $link = "dsh plugin --profile web add link:$PackagePath"
+        if ($Action -eq 'remove') { $link = 'dsh plugin --profile web remove dsh-plugin-quicker' }
+        Write-Output "dsh CLI was not found. Run this in the target profile when ready: $link"
+        return
+    }
+    $pluginArgs = if ($Action -eq 'remove') {
+        @('plugin', '--profile', 'web', 'remove', 'dsh-plugin-quicker')
+    } else {
+        @('plugin', '--profile', 'web', 'add', ('link:' + $PackagePath))
+    }
+    $result = & $dsh @pluginArgs
+    if ($LASTEXITCODE -ne 0) {
+        Write-Output ($result | Out-String)
+        Write-Output "dsh plugin $Action did not finish. Package files are at $PackagePath."
+        return
+    }
+    if ($result) { Write-Output ($result | Out-String).TrimEnd() }
+}
+
+$packageName = switch ($Client) {
+    'cursor' { 'quicker-cursor' }
+    'dsh' { 'quicker-dsh' }
+    default { 'quicker-mcp' }
+}
 $relativeTarget = if ($Client -eq 'cursor') { '.cursor/plugins/local/quicker' } else { '.quicker/agent-integrations/' + $Client }
 $target = Assert-UserPath (Join-Path $userPath $relativeTarget)
 $markerPath = Join-Path $target '.quicker-managed.json'
@@ -84,7 +116,7 @@ $configPath = $null
 $config = $null
 $section = 'mcpServers'
 $server = $null
-if ($Client -ne 'cursor') {
+if ($Client -in @('vscode', 'gemini')) {
     $relativeConfig = if ($Client -eq 'vscode') { 'AppData/Roaming/Code/User/mcp.json' } else { '.gemini/settings.json' }
     $configPath = Assert-UserPath (Join-Path $userPath $relativeConfig)
     if ($Client -eq 'vscode') { $section = 'servers' }
@@ -106,6 +138,7 @@ if ($Client -ne 'cursor') {
 
 if ($Uninstall) {
     if (-not $marker) { Write-Output 'Nothing installed by this installer.'; exit 0 }
+    if ($Client -eq 'dsh') { Invoke-DshPlugin -Action remove -PackagePath $target }
     if ($configPath) {
         [void]$config[$section].Remove('quicker')
         Write-Json $configPath $config
@@ -155,6 +188,12 @@ try {
     throw
 }
 Write-Output "Installed Quicker for $Client at $target"
-if ($Client -eq 'cursor') { Write-Output 'Cursor IDE: Developer: Reload Window. Cursor CLI: start a new task; use --plugin-dir with the installed directory if local plugins are not discovered.' }
-else { Write-Output 'Restart the MCP server or start a new client task.' }
+if ($Client -eq 'cursor') {
+    Write-Output 'Cursor IDE: Developer: Reload Window. Cursor CLI: start a new task; use --plugin-dir with the installed directory if local plugins are not discovered.'
+} elseif ($Client -eq 'dsh') {
+    Invoke-DshPlugin -Action add -PackagePath $target
+    Write-Output 'Restart dsh web or the DeepSeek Harness desktop app so the bundle layer loads.'
+} else {
+    Write-Output 'Restart the MCP server or start a new client task.'
+}
 Write-Output 'Enable MCP and allow writes in Quicker Settings > Agent; complete Quicker client consent when prompted.'

@@ -20,6 +20,16 @@ class PackageTests(unittest.TestCase):
             self.assertTrue((package / 'skills/write-action/SKILL.md').is_file())
             market = json.loads((ROOT / ('.' + client + '-plugin') / 'marketplace.json').read_text(encoding='utf-8'))
             self.assertEqual((ROOT / market['plugins'][0]['source']).resolve(), package.resolve())
+        dsh = json.loads((ROOT / 'plugins/quicker-dsh/package.json').read_text(encoding='utf-8'))
+        self.assertEqual(dsh['name'], 'dsh-plugin-quicker')
+        self.assertEqual(dsh['dsh']['bundle']['patch'], './cordis.patch.yml')
+        self.assertTrue((ROOT / 'plugins/quicker-dsh/index.js').is_file())
+        self.assertTrue((ROOT / 'plugins/quicker-dsh/cordis.patch.yml').is_file())
+        self.assertTrue((ROOT / 'plugins/quicker-dsh/skills/write-action/SKILL.md').is_file())
+        index = (ROOT / 'plugins/quicker-dsh/index.js').read_text(encoding='utf-8')
+        self.assertIn("@deepseek-ai/dsh-mcp-client", index)
+        self.assertIn("'dsh'", index)
+        self.assertIn('agent/session-start', index)
 
 
 @unittest.skipUnless(POWERSHELL, 'Windows PowerShell required')
@@ -98,7 +108,7 @@ class InstallTests(unittest.TestCase):
         self.assertEqual((target / 'keep').read_text(), 'foreign')
 
     def test_each_plugin_launches_from_unrelated_directory(self):
-        for client, variable in [('cursor', 'CURSOR_PLUGIN_ROOT'), ('claude', 'CLAUDE_PLUGIN_ROOT')]:
+        for client, variable in [('cursor', 'CURSOR_PLUGIN_ROOT'), ('claude', 'CLAUDE_PLUGIN_ROOT'), ('dsh', None)]:
             with self.subTest(client=client):
                 host = MockHost()
                 try:
@@ -106,8 +116,12 @@ class InstallTests(unittest.TestCase):
                     settings.write_bytes(encoded({'Enabled': True, 'Port': host.port, 'Token': 'test-only-token'}))
                     package = self.profile / '插件 缓存' / ('quicker-' + client)
                     shutil.copytree(ROOT / 'plugins' / ('quicker-' + client), package)
-                    config = json.loads((package / ('mcp.json' if client == 'cursor' else '.mcp.json')).read_text(encoding='utf-8'))['mcpServers']['quicker']
-                    args = [a.replace('${' + variable + '}', str(package)) for a in config['args']]
+                    if variable:
+                        config = json.loads((package / ('mcp.json' if client == 'cursor' else '.mcp.json')).read_text(encoding='utf-8'))['mcpServers']['quicker']
+                        args = [a.replace('${' + variable + '}', str(package)) for a in config['args']]
+                    else:
+                        args = ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+                                '-File', str(package / 'scripts/quicker-mcp.ps1'), '-Client', client]
                     host.respond(reply(1, {'tools': [], 'extra': '中文保真'}))
                     result = subprocess.run([str(POWERSHELL), *args, '-SettingsPath', str(settings)],
                                             input=encoded(request()) + b'\n', capture_output=True, cwd=self.profile, timeout=35)
@@ -118,3 +132,18 @@ class InstallTests(unittest.TestCase):
                     self.assertNotIn(b'test-only-token', result.stdout + result.stderr)
                 finally:
                     host.close()
+
+    def test_dsh_package_install_update_and_local_edits(self):
+        result = self.install('dsh')
+        target = self.profile / '.quicker/agent-integrations/dsh'
+        self.assertTrue((target / 'package.json').is_file())
+        self.assertTrue((target / 'index.js').is_file())
+        self.assertTrue((target / 'cordis.patch.yml').is_file())
+        self.assertTrue((target / 'scripts/quicker-mcp.ps1').is_file())
+        if shutil.which('dsh') is None:
+            self.assertIn(b'dsh CLI was not found', result.stdout)
+        self.install('dsh')
+        (target / 'custom.txt').write_text('keep', encoding='utf-8')
+        self.install('dsh', success=False)
+        self.install('dsh', '-Uninstall', success=False)
+        self.assertEqual((target / 'custom.txt').read_text(), 'keep')

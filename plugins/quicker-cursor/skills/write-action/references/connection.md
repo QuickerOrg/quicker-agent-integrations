@@ -13,6 +13,6 @@ The relay reads the current port and token from the local Quicker configuration 
 - Write tools absent: enable 允许 MCP 写入 in Quicker, keep the existing approval mode, then reconnect or start a new agent task.
 - A write timeout can leave an unknown outcome: inspect the slot before retrying.
 
-After installation/update, reload the client and create a new task. Cursor IDE: Developer: Reload Window; Cursor CLI: restart agent. Claude Code: /reload-plugins or restart. VS Code: MCP: List Servers → Quicker → Restart. Gemini CLI: restart.
+After installation/update, reload the client and create a new task. Cursor IDE: Developer: Reload Window; Cursor CLI: restart agent. Claude Code: /reload-plugins or restart. VS Code: MCP: List Servers → Quicker → Restart. Gemini CLI: restart. DeepSeek Harness: restart `dsh web` or the desktop app after `dsh plugin add`.
 
 Plugins ship their own relay. Cursor and Claude expand their respective plugin-root variables; Codex uses package-relative cwd. Generic MCP configuration points at the installed copy, never the development checkout. Do not edit server.json or clients.json to grant access.

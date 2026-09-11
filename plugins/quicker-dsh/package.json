@@ -1,0 +1,41 @@
+{
+  "name": "dsh-plugin-quicker",
+  "version": "0.2.0",
+  "description": "通过本机 Quicker MCP 编写、保存和预览自动化动作。",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "scripts/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "quicker",
+    "mcp"
+  ],
+  "author": "QuickerOrg",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QuickerOrg/quicker-agent-integrations.git",
+    "directory": "plugins/quicker-dsh"
+  },
+  "homepage": "https://github.com/QuickerOrg/quicker-agent-integrations",
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

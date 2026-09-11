@@ -3,7 +3,7 @@ param(
     [string]$SettingsPath = '',
     [ValidateRange(1, 600)]
     [int]$RequestTimeoutSeconds = 180,
-    [ValidateSet('codex', 'cursor', 'claude', 'vscode', 'gemini')]
+    [ValidateSet('codex', 'cursor', 'claude', 'vscode', 'gemini', 'dsh')]
     [string]$Client = 'codex',
     [switch]$Check
 )

@@ -1,10 +1,10 @@
 # Quicker Agent Integrations
 
-让 Codex、Cursor 等外部 Agent 调用本机 Quicker，编写和使用自动化动作。
+让 Codex、Cursor、DeepSeek Harness 等外部 Agent 调用本机 Quicker，编写和使用自动化动作。
 
 这个仓库集中维护各平台插件、安装与更新工具、MCP 接入约定、开发指南和契约测试。插件通过 Quicker 的公开接口工作，步骤知识由运行中的 Quicker 实时提供。
 
-提供 Codex、Cursor、Claude Code 插件及 VS Code / Gemini CLI 的 MCP 配置安装器，采用 [MIT 许可证](LICENSE)。
+提供 Codex、Cursor、Claude Code、DeepSeek Harness 插件及 VS Code / Gemini CLI 的 MCP 配置安装器，采用 [MIT 许可证](LICENSE)。
 
 ## 支持情况
 
@@ -14,6 +14,7 @@
 | Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
 | Claude Code | 原生插件，v0.2.1 | v0.2.0 公开市场安装和真实 MCP 连接通过；模型写动作待验收 |
 | VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
+| DeepSeek Harness | DSH bundle 插件 | Windows；安装包与转接已实现，真实 DSH 会话写动作待验收 |
 
 需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
 
@@ -61,6 +62,26 @@ claude auth status
 > 用 Quicker 写一个动作，显示“来自 Claude Code”，保存到暂存区并打开预览，不运行。
 
 Quicker 原生插件可与官方 [codex-plugin-cc](https://github.com/openai/codex-plugin-cc) 同时安装，前者直接提供 Quicker 工具，后者从 Claude Code 委托 Codex 审查或处理代码。两者不互为依赖，Codex 登录不能代替 Claude 登录。更新、连接超时处理及验收范围见[Claude Code 安装和诊断](docs/客户端安装.md#claude-code-安装和诊断)。
+
+## 安装 DeepSeek Harness 插件
+
+在 Windows PowerShell 中执行（需要 Git）：
+
+```powershell
+$quickerInstall = Join-Path $env:TEMP ("quicker-agent-" + [guid]::NewGuid().ToString("N"))
+git clone --depth 1 https://github.com/QuickerOrg/quicker-agent-integrations.git $quickerInstall
+if ($LASTEXITCODE -eq 0) {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $quickerInstall "scripts/install-client.ps1") -Client dsh
+}
+```
+
+安装器把自包含 bundle 复制到 `%USERPROFILE%/.quicker/agent-integrations/dsh`。PATH 中有 `dsh` 时会再执行 `dsh plugin --profile web add link:<该目录>`；否则把打印出的命令贴到目标 profile。开发检出可直接 `dsh plugin --profile web add link:<仓库>/plugins/quicker-dsh`。
+
+启用 Quicker 设置 → Agent 中的 MCP 与允许写入，重启 `dsh web` 或 DSH 桌面端。首次连接确认 `dsh-quicker-plugin`。工具名为 `mcp__quicker__skill_load` 这类带命名空间的名称。可以这样开始：
+
+> 用 Quicker 写一个动作，显示“来自 DeepSeek Harness”，保存到暂存区并打开预览，不运行。
+
+更新、卸载和诊断见[客户端安装](docs/客户端安装.md)。本轮完成安装包、转接和隔离测试，尚未声称真实 DSH 会话已经写过动作。
 
 ## VS Code / Copilot 与 Gemini CLI
 
@@ -143,6 +164,7 @@ codex plugin remove quicker@quicker-agent-integrations
   marketplace.json       Codex Git 市场入口
 plugins/
   quicker/               Codex 完整安装单元
+  quicker-dsh/           DeepSeek Harness bundle
 docs/
   接入约定.md             跨平台协议、权限、错误及动作编写约定
   新增平台.md             新平台开发和验收流程
@@ -153,7 +175,7 @@ tests/
   test_quicker_mcp.py     独立的传输契约测试
 ```
 
-Cursor、Claude 和 Codex 分别由自己的 marketplace 清单声明包路径。`shared/` 是传输与写动作技能的唯一源码，`python scripts/sync-packages.py` 同步到各自包含安装包，`--check` 在 CI 验证无漂移。
+Cursor、Claude 和 Codex 分别由自己的 marketplace 清单声明包路径。DeepSeek Harness 使用 `plugins/quicker-dsh` 的 `dsh.bundle` 清单，不走那些市场。`shared/` 是传输与写动作技能的唯一源码，`python scripts/sync-packages.py` 同步到各自包含安装包，`--check` 在 CI 验证无漂移。
 
 ## 开发与验证
 
