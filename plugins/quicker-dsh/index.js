@@ -7,7 +7,7 @@ const RELAY_SCRIPT = 'quicker-mcp.ps1'
 const SKILL_FILE = join(PACKAGE_ROOT, 'skills', 'write-action', 'SKILL.md')
 
 export const name = 'quicker'
-export const inject = ['tools']
+export const inject = ['tools', 'loader']
 
 export function resolvePackageRoot() {
   return PACKAGE_ROOT
@@ -68,8 +68,26 @@ function injectAuthoringGuide(agent) {
   }
 }
 
-export function apply(ctx) {
-  ctx.plugin('@deepseek-ai/dsh-mcp-client', mcpClientConfig())
+export async function apply(ctx) {
+  // Cordis ctx.plugin() only accepts a function or { apply }. Package names
+  // must go through the DSH loader, which resolves host packages such as
+  // @deepseek-ai/dsh-mcp-client from the desktop/CLI install.
+  const loader = ctx.loader
+  if (loader == null || typeof loader.create !== 'function') {
+    throw new Error('dsh-plugin-quicker requires the DSH loader to register @deepseek-ai/dsh-mcp-client')
+  }
+
+  await ctx.effect(async () => {
+    const id = await loader.create({
+      name: '@deepseek-ai/dsh-mcp-client',
+      config: mcpClientConfig(),
+    })
+    return async () => {
+      if (loader.store?.[id] === undefined) return
+      await loader.remove(id)
+    }
+  }, 'dsh-plugin-quicker: mcp-client')
+
   ctx.on('agent/session-start', ({ agent }) => {
     injectAuthoringGuide(agent)
   })

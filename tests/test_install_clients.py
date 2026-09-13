@@ -30,6 +30,9 @@ class PackageTests(unittest.TestCase):
         self.assertIn("@deepseek-ai/dsh-mcp-client", index)
         self.assertIn("'dsh'", index)
         self.assertIn('agent/session-start', index)
+        self.assertIn('loader.create', index)
+        self.assertIn("'loader'", index)
+        self.assertNotIn("ctx.plugin('@deepseek-ai/dsh-mcp-client'", index)
 
 
 @unittest.skipUnless(POWERSHELL, 'Windows PowerShell required')
