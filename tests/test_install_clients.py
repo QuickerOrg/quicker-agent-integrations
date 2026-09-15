@@ -32,6 +32,8 @@ class PackageTests(unittest.TestCase):
         self.assertIn('agent/session-start', index)
         self.assertIn('loader.create', index)
         self.assertIn("'loader'", index)
+        self.assertIn('randomUUID', index)
+        self.assertIn("role: 'user'", index)
         self.assertNotIn("ctx.plugin('@deepseek-ai/dsh-mcp-client'", index)
 
 

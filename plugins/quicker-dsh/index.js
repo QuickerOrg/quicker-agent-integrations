@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -57,12 +58,39 @@ function authoringPreamble() {
   ].join('\n')
 }
 
+function assertIdentifiedUserMessage(message) {
+  if (typeof message !== 'object' || message === null
+    || typeof message.id !== 'string' || message.id === '') {
+    throw new Error('dsh-plugin-quicker inject requires an identified message')
+  }
+  if (message.role !== 'user') {
+    throw new Error('dsh-plugin-quicker inject requires role user')
+  }
+  if (typeof message.source !== 'object' || message.source === null
+    || typeof message.source.kind !== 'string' || message.source.kind === '') {
+    throw new Error('dsh-plugin-quicker inject requires a message source')
+  }
+  if (!Array.isArray(message.content)) {
+    throw new Error('dsh-plugin-quicker inject requires content')
+  }
+}
+
+export function createAuthoringGuideMessage(text) {
+  const message = {
+    id: randomUUID(),
+    role: 'user',
+    content: [{ type: 'text', text: text ?? authoringPreamble() }],
+    source: { kind: 'plugin', plugin: 'dsh-plugin-quicker' },
+  }
+  assertIdentifiedUserMessage(message)
+  return message
+}
+
 function injectAuthoringGuide(agent) {
+  const message = createAuthoringGuideMessage()
   try {
-    agent.inject({
-      content: [{ type: 'text', text: authoringPreamble() }],
-      source: { kind: 'plugin', plugin: 'dsh-plugin-quicker' },
-    })
+    // DSH persist + replay require a complete UserMessage (id + role).
+    agent.inject(message)
   } catch {
     // A disposed agent must not fail plugin activation.
   }

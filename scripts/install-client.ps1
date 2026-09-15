@@ -161,7 +161,13 @@ $files = @{}
 foreach ($file in Get-ChildItem -LiteralPath $staging -Recurse -File -Force) {
     $files[$file.FullName.Substring($staging.Length + 1).Replace('\', '/')] = Get-PackageHash $file.FullName
 }
-$newMarker = @{ owner = 'QuickerOrg/quicker-agent-integrations'; client = $Client; version = '0.2.0'; files = $files }
+$packageVersion = '0.2.0'
+$packageManifest = Join-Path $source 'package.json'
+if (Test-Path -LiteralPath $packageManifest) {
+    $packageJson = Read-Json $packageManifest
+    if ($packageJson['version']) { $packageVersion = [string]$packageJson['version'] }
+}
+$newMarker = @{ owner = 'QuickerOrg/quicker-agent-integrations'; client = $Client; version = $packageVersion; files = $files }
 if ($server) { $newMarker['server'] = $server }
 Write-Json (Join-Path $staging '.quicker-managed.json') $newMarker
 $backup = $null
