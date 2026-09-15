@@ -1,6 +1,8 @@
 # Quicker DeepSeek Harness 插件
 
-版本：0.2.0。需要 Windows PowerShell 5.1、已安装的 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh` CLI 或桌面端），以及设置 → Agent 中带「启用 MCP」入口的本机 Quicker。此目录是完整 DSH bundle：写动作引导、stdio 转接，以及把 `@deepseek-ai/dsh-mcp-client` 接到本机 Quicker 的入口。运行时不依赖开发检出。
+版本：0.2.1。需要 Windows PowerShell 5.1、已安装的 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh` CLI 或桌面端），以及设置 → Agent 中带「启用 MCP」入口的本机 Quicker。此目录是完整 DSH bundle：写动作引导、stdio 转接，以及把 `@deepseek-ai/dsh-mcp-client` 接到本机 Quicker 的入口。运行时不依赖开发检出。
+
+0.2.1 补齐 `agent.inject` 的 `id` / `role`。0.2.0 写入的会话在 DSH 回放时会报 `lacks an identified message` 并整段无法加载；本版只阻止新会话再被写坏，不能修好已经落盘的旧日志。
 
 ## 安装
 

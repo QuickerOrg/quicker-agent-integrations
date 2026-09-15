@@ -14,7 +14,7 @@
 | Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
 | Claude Code | 原生插件，v0.2.1 | v0.2.0 公开市场安装和真实 MCP 连接通过；模型写动作待验收 |
 | VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
-| DeepSeek Harness | DSH bundle 插件 | Windows；安装包与转接已实现，真实 DSH 会话写动作待验收 |
+| DeepSeek Harness | DSH bundle 插件，v0.2.1 | Windows；安装包与转接已实现；0.2.1 修复注入消息缺 id/role 导致历史无法加载。真实 DSH 会话写动作待验收 |
 
 需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
 
