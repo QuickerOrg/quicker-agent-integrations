@@ -29,11 +29,12 @@ class PackageTests(unittest.TestCase):
         index = (ROOT / 'plugins/quicker-dsh/index.js').read_text(encoding='utf-8')
         self.assertIn("@deepseek-ai/dsh-mcp-client", index)
         self.assertIn("'dsh'", index)
-        self.assertIn('agent/session-start', index)
+        self.assertIn('ctx.skills.register', index)
+        self.assertIn("'skills'", index)
         self.assertIn('loader.create', index)
         self.assertIn("'loader'", index)
-        self.assertIn('randomUUID', index)
-        self.assertIn("role: 'user'", index)
+        self.assertNotIn('agent/session-start', index)
+        self.assertNotIn('agent.inject', index)
         self.assertNotIn("ctx.plugin('@deepseek-ai/dsh-mcp-client'", index)
 
 

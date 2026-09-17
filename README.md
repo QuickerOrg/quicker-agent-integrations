@@ -14,7 +14,7 @@
 | Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
 | Claude Code | 原生插件，v0.2.1 | v0.2.0 公开市场安装和真实 MCP 连接通过；模型写动作待验收 |
 | VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
-| DeepSeek Harness | DSH bundle 插件，v0.2.3 | Windows；安装包与转接已实现；v0.2.3 修复注入消息缺 id/role 导致历史无法加载。真实 DSH 会话写动作待验收 |
+| DeepSeek Harness | DSH bundle 插件，v0.2.4 | Windows；`write-action` 以技能目录卡片按需加载，不再在每次会话开头注入整份编写说明。真实 DSH 会话写动作待验收 |
 
 需要使用设置 → Agent 中带「启用 MCP」入口、并包含默认技能包发现修复的 Quicker 新构建。Release 支持已实现，待包含这些变更的正式版发布；已发布旧版没有该入口时仍不可用。本次已验证 Debug 的草稿编写与预览，Release 配置内核测试和正式前端构建通过，正式安装包端到端仍待验收，详见[兼容性说明](docs/兼容性.md)。
 
@@ -77,7 +77,7 @@ if ($LASTEXITCODE -eq 0) {
 
 安装器把自包含 bundle 复制到 `%USERPROFILE%/.quicker/agent-integrations/dsh`。PATH 中有 `dsh` 时会再执行 `dsh plugin --profile web add link:<该目录>`；否则把打印出的命令贴到目标 profile。开发检出可直接 `dsh plugin --profile web add link:<仓库>/plugins/quicker-dsh`。
 
-启用 Quicker 设置 → Agent 中的 MCP 与允许写入，重启 `dsh web` 或 DSH 桌面端。首次连接确认 `dsh-quicker-plugin`。工具名为 `mcp__quicker__skill_load` 这类带命名空间的名称。可以这样开始：
+启用 Quicker 设置 → Agent 中的 MCP 与允许写入，重启 `dsh web` 或 DSH 桌面端。首次连接确认 `dsh-quicker-plugin`。工具名为 `mcp__quicker__skill_load` 这类带命名空间的名称。普通对话只会看到技能目录里的 `write-action` 卡片；写动作时模型会按需加载完整说明，也可输入 `/write-action`。可以这样开始：
 
 > 用 Quicker 写一个动作，显示“来自 DeepSeek Harness”，保存到暂存区并打开预览，不运行。
 
