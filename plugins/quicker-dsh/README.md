@@ -1,8 +1,8 @@
 # Quicker DeepSeek Harness 插件
 
-版本：0.2.3。需要 Windows PowerShell 5.1、已安装的 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh` CLI 或桌面端），以及设置 → Agent 中带「启用 MCP」入口的本机 Quicker。此目录是完整 DSH bundle：写动作引导、stdio 转接，以及把 `@deepseek-ai/dsh-mcp-client` 接到本机 Quicker 的入口。运行时不依赖开发检出。
+版本：0.2.4。需要 Windows PowerShell 5.1、已安装的 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh` CLI 或桌面端），以及设置 → Agent 中带「启用 MCP」入口的本机 Quicker。此目录是完整 DSH bundle：写动作技能、stdio 转接，以及把 `@deepseek-ai/dsh-mcp-client` 接到本机 Quicker 的入口。运行时不依赖开发检出。
 
-0.2.3 与发布批次 `v0.2.3` 对齐（`quicker-dsh-0.2.3.zip` 内即为 0.2.3）。功能与误标成 0.2.1 的 v0.2.2 相同：补齐 `agent.inject` 的 `id` / `role`。0.2.0 写入的会话在 DSH 回放时会报 `lacks an identified message` 并整段无法加载；本版只阻止新会话再被写坏，不能修好已经落盘的旧日志。
+0.2.4 把 `write-action` 注册为 DSH 技能目录卡片：会话开头只出现名称和描述，完整写动作说明在模型调用 `skill({ name: "write-action" })` 或用户输入 `/write-action` 后才加载。不再在每次 `agent/session-start` 注入整份技能正文。0.2.3 曾补齐 `agent.inject` 的 `id` / `role`，避免旧注入消息导致会话无法回放；0.2.0 已写入的会话不会自动修好。
 
 ## 安装
 
@@ -30,11 +30,11 @@ dsh plugin --profile web add link:<本仓库>/plugins/quicker-dsh
 
 启用 Quicker 设置 → Agent 中的 MCP 与允许写入，然后重启 `dsh web` 或 DSH 桌面端。首次连接在 Quicker 中确认 `dsh-quicker-plugin` 客户端。安装本身不授予执行或覆盖权限。
 
-可以这样开始：
+未写动作的对话只会看到技能目录里的 `write-action` 卡片，不会被整份编写协议占用。需要写动作时可以说：
 
 > 用 Quicker 写一个动作，显示“来自 DeepSeek Harness”，保存到暂存区并打开预览，不运行。
 
-Quicker 工具在 DSH 中的名称带命名空间，例如 `mcp__quicker__skill_load`、`mcp__quicker__quicker_create`。默认保存到暂存区；正式保留、覆盖或运行由用户要求和 Quicker 审批决定。
+也可以直接输入 `/write-action`。Quicker 工具在 DSH 中的名称带命名空间，例如 `mcp__quicker__skill_load`、`mcp__quicker__quicker_create`；调用结果走 DSH 自带的工具卡片。默认保存到暂存区；正式保留、覆盖或运行由用户要求和 Quicker 审批决定。
 
 ## 更新、卸载和诊断
 
