@@ -4,7 +4,7 @@
 
 这个仓库集中维护各平台插件、安装与更新工具、MCP 接入约定、开发指南和契约测试。插件通过 Quicker 的公开接口工作，步骤知识由运行中的 Quicker 实时提供。
 
-提供 Codex、Cursor、Claude Code、DeepSeek Harness 插件及 VS Code / Gemini CLI 的 MCP 配置安装器，采用 [MIT 许可证](LICENSE)。
+提供 Codex、Cursor、Claude Code、WorkBuddy / CodeBuddy、DeepSeek Harness 插件及 VS Code / Gemini CLI 的 MCP 配置安装器，采用 [MIT 许可证](LICENSE)。
 
 ## 支持情况
 
@@ -13,6 +13,7 @@
 | Codex | 已实现，v0.2.0 | Windows；读取知识、编写/保存草稿、预览 |
 | Cursor | 本地插件；CLI 真实写动作通过 | Windows；技能、草稿创建/保存/预览 |
 | Claude Code | 原生插件，v0.2.1 | v0.2.0 公开市场安装和真实 MCP 连接通过；模型写动作待验收 |
+| WorkBuddy / CodeBuddy | 原生插件，v0.2.0 | 本机 WorkBuddy 5.3.12 + CLI 2.115.0 安装并通过；模型改同一草稿已保存。桌面点选与公开 GitHub 市场未测 |
 | VS Code / Copilot、Gemini CLI | 配置安装器 | 默认 Windows 用户配置；尚未完成各客户端写动作验收 |
 | DeepSeek Harness | DSH bundle 插件，v0.2.4 | Windows；`write-action` 以技能目录卡片按需加载，不再在每次会话开头注入整份编写说明。真实 DSH 会话写动作待验收 |
 
@@ -62,6 +63,31 @@ claude auth status
 > 用 Quicker 写一个动作，显示“来自 Claude Code”，保存到暂存区并打开预览，不运行。
 
 Quicker 原生插件可与官方 [codex-plugin-cc](https://github.com/openai/codex-plugin-cc) 同时安装，前者直接提供 Quicker 工具，后者从 Claude Code 委托 Codex 审查或处理代码。两者不互为依赖，Codex 登录不能代替 Claude 登录。更新、连接超时处理及验收范围见[Claude Code 安装和诊断](docs/客户端安装.md#claude-code-安装和诊断)。
+
+## 安装 WorkBuddy / CodeBuddy 插件
+
+WorkBuddy 桌面与 CodeBuddy CLI 共用同一插件引擎，安装命令是 `codebuddy`：
+
+```powershell
+$env:CODEBUDDY_CONFIG_DIR = "$env:USERPROFILE\.workbuddy"
+codebuddy plugin marketplace add QuickerOrg/quicker-agent-integrations
+codebuddy plugin install quicker@quicker-agent-integrations --scope user
+```
+
+`marketplace add` 仓库本地路径会链到检出，不会进 `~\.workbuddy\plugins\cache\`。公开安装用 GitHub；本机未推送时用含 `.codebuddy-plugin/marketplace.json` 的 zip。
+
+启用 Quicker 设置 → Agent 中的 MCP 与允许写入，执行 `/reload-plugins` 或新开会话，再用 `/mcp` 检查 Quicker。首次连接需要在 Quicker 中确认 `workbuddy-quicker-plugin` 客户端。不要在设置 → MCP 里填写 Quicker URL 或 token。
+
+```powershell
+codebuddy plugin list --json
+codebuddy mcp list
+```
+
+可以这样开始：
+
+> 用 Quicker 写一个动作，显示“来自 WorkBuddy”，保存到暂存区并打开预览，不运行。
+
+更新、卸载和诊断见[客户端安装](docs/客户端安装.md)。2026-09-16 已在本机 WorkBuddy 5.3.12 上完成安装、转接连接，以及模型改同一草稿并保存；桌面点选插件和公开 GitHub 市场安装尚未验收，范围见[兼容性说明](docs/兼容性.md)。
 
 ## 安装 DeepSeek Harness 插件
 
@@ -164,6 +190,7 @@ codex plugin remove quicker@quicker-agent-integrations
   marketplace.json       Codex Git 市场入口
 plugins/
   quicker/               Codex 完整安装单元
+  quicker-workbuddy/     WorkBuddy / CodeBuddy 完整安装单元
   quicker-dsh/           DeepSeek Harness bundle
 docs/
   接入约定.md             跨平台协议、权限、错误及动作编写约定
@@ -175,7 +202,7 @@ tests/
   test_quicker_mcp.py     独立的传输契约测试
 ```
 
-Cursor、Claude 和 Codex 分别由自己的 marketplace 清单声明包路径。DeepSeek Harness 使用 `plugins/quicker-dsh` 的 `dsh.bundle` 清单，不走那些市场。`shared/` 是传输与写动作技能的唯一源码，`python scripts/sync-packages.py` 同步到各自包含安装包，`--check` 在 CI 验证无漂移。
+Cursor、Claude、WorkBuddy / CodeBuddy 和 Codex 分别由自己的 marketplace 清单声明包路径。DeepSeek Harness 使用 `plugins/quicker-dsh` 的 `dsh.bundle` 清单，不走那些市场。`shared/` 是传输与写动作技能的唯一源码，`python scripts/sync-packages.py` 同步到各自包含安装包，`--check` 在 CI 验证无漂移。
 
 ## 开发与验证
 

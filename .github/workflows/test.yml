@@ -28,6 +28,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m json.tool plugins/quicker-dsh/package.json > $null
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m json.tool .codebuddy-plugin/marketplace.json > $null
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m json.tool plugins/quicker-workbuddy/.codebuddy-plugin/plugin.json > $null
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m json.tool plugins/quicker-workbuddy/.mcp.json > $null
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test transport, installation and release packaging
         run: python -m unittest discover -s tests -v
       - name: Build and verify every release package
