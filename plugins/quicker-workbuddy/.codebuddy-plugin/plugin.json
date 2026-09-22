@@ -1,0 +1,10 @@
+{
+  "name": "quicker",
+  "version": "0.2.0",
+  "description": "通过本机 Quicker MCP 编写、保存和预览自动化动作。",
+  "author": {
+    "name": "QuickerOrg"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/QuickerOrg/quicker-agent-integrations"
+}

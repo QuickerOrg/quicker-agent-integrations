@@ -20,6 +20,11 @@ class PackageTests(unittest.TestCase):
             self.assertTrue((package / 'skills/write-action/SKILL.md').is_file())
             market = json.loads((ROOT / ('.' + client + '-plugin') / 'marketplace.json').read_text(encoding='utf-8'))
             self.assertEqual((ROOT / market['plugins'][0]['source']).resolve(), package.resolve())
+        workbuddy = ROOT / 'plugins/quicker-workbuddy'
+        self.assertEqual(json.loads((workbuddy / '.codebuddy-plugin' / 'plugin.json').read_text(encoding='utf-8'))['name'], 'quicker')
+        self.assertTrue((workbuddy / 'skills/write-action/SKILL.md').is_file())
+        market = json.loads((ROOT / '.codebuddy-plugin' / 'marketplace.json').read_text(encoding='utf-8'))
+        self.assertEqual((ROOT / market['plugins'][0]['source']).resolve(), workbuddy.resolve())
         dsh = json.loads((ROOT / 'plugins/quicker-dsh/package.json').read_text(encoding='utf-8'))
         self.assertEqual(dsh['name'], 'dsh-plugin-quicker')
         self.assertEqual(dsh['dsh']['bundle']['patch'], './cordis.patch.yml')
@@ -114,7 +119,8 @@ class InstallTests(unittest.TestCase):
         self.assertEqual((target / 'keep').read_text(), 'foreign')
 
     def test_each_plugin_launches_from_unrelated_directory(self):
-        for client, variable in [('cursor', 'CURSOR_PLUGIN_ROOT'), ('claude', 'CLAUDE_PLUGIN_ROOT'), ('dsh', None)]:
+        for client, variable in [('cursor', 'CURSOR_PLUGIN_ROOT'), ('claude', 'CLAUDE_PLUGIN_ROOT'),
+                                 ('workbuddy', 'CODEBUDDY_PLUGIN_ROOT'), ('dsh', None)]:
             with self.subTest(client=client):
                 host = MockHost()
                 try:

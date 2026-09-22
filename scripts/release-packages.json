@@ -28,6 +28,13 @@
       "marketplace": ".claude-plugin/marketplace.json"
     },
     {
+      "id": "workbuddy",
+      "path": "plugins/quicker-workbuddy",
+      "manifest": ".codebuddy-plugin/plugin.json",
+      "mcpConfig": ".mcp.json",
+      "marketplace": ".codebuddy-plugin/marketplace.json"
+    },
+    {
       "id": "mcp",
       "path": "plugins/quicker-mcp",
       "manifest": "package.json"
